@@ -1,0 +1,31 @@
+{
+    "name": "net_bazzline/multi_command_executer",
+    "type": "application",
+    "description": "executes commands on multiple paths",
+    "keywords": ["php", "net_bazzline", "cli", "command", "json", "execute"],
+    "homepage": "https://github.com/stevleibelt/php_cli_multi_command_executer",
+    "license": "LGPLv3",
+    "authors": [
+        {
+            "name": "stev leibelt",
+            "email": "artodeto@bazzline.net",
+            "homepage": "http://artodeto.bazzline.net",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.3.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*",
+        "mikey179/vfsStream": "dev-master",
+	    "mockery/mockery": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {
+            "Net\\Bazzline\\Cli\\MultiCommandExecuter": "source/",
+            "Test\\Net\\Bazzline\\Cli\\MultiCommandExecuter": "test/"
+        }
+    }
+}

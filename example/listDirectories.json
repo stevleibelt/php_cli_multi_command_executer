@@ -1,0 +1,10 @@
+{
+    "paths": [
+        "example/",
+        "source",
+        "vendor"
+    ],
+    "commands": [
+        "ls -halt"
+    ]
+}
