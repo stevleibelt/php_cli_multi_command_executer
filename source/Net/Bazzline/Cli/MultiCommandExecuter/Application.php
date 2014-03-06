@@ -52,8 +52,12 @@ class Application
                 );
             }
 
+            //debug echo PHP_EOL . var_export($currentDirectoryPath, true) . PHP_EOL;
+            chdir($currentDirectoryPath);
+
             foreach ($this->configuration['commands'] as $command) {
                 $escapedCommand = escapeshellcmd($command);
+                //debug echo command
                 system($escapedCommand);
             }
         }

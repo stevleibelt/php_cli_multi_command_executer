@@ -1,4 +1,4 @@
+implement usage of relative and absolute paths in config
 implement debug usage
-implement verbose
 implement lockfile usage
 implement shutdown usage
