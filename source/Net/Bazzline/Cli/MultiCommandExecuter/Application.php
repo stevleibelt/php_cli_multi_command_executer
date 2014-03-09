@@ -17,6 +17,13 @@ use Exception;
 class Application
 {
     /**
+     * @var boolean
+     * @author stev leibelt <artodeto@bazzline>
+     * @since 2013-03-09
+     */
+    private $beVerbose = false;
+
+    /**
      * @var array
      * @author stev leibelt <artodeto@bazzline>
      * @since 2014-03-07
@@ -24,7 +31,20 @@ class Application
     private $configuration;
 
     /**
+     * @return $this
+     * @author stev leibelt <artodeto@bazzline.net>
+     * @since 2014-03-09
+     */
+    public function beVerbose()
+    {
+        $this->beVerbose = true;
+
+        return $this;
+    }
+
+    /**
      * @param array $configuration
+     * @return $this
      * @throws Exception
      * @author stev leibelt <artodeto@bazzline.net>
      * @since 2014-03-07
@@ -33,6 +53,8 @@ class Application
     {
         $this->validateConfiguration($configuration);
         $this->configuration = $configuration;
+
+        return $this;
     }
 
     /**
@@ -43,7 +65,9 @@ class Application
     public function andRun()
     {
         $currentWorkingDirectory = getcwd();
+
         foreach ($this->configuration['paths'] as $path) {
+            $this->outputCurrentPathsProgress($path);
             $currentDirectoryPath = $currentWorkingDirectory . DIRECTORY_SEPARATOR . $path;
 
             if (!is_dir($currentDirectoryPath)) {
@@ -52,15 +76,34 @@ class Application
                 );
             }
 
-            //debug echo PHP_EOL . var_export($currentDirectoryPath, true) . PHP_EOL;
             chdir($currentDirectoryPath);
 
             foreach ($this->configuration['commands'] as $command) {
                 $escapedCommand = escapeshellcmd($command);
-                //debug echo command
+                $this->outputCurrentCommandProgress($command);
                 system($escapedCommand);
             }
         }
+    }
+
+    /**
+     * @param $command
+     * @author stev leibelt <artodeto@bazzline.net>
+     * @since 2014-03-09
+     */
+    private function outputCurrentCommandProgress($command)
+    {
+        echo ($this->beVerbose) ? 'executing command: ' . $command . PHP_EOL : '.';
+    }
+
+    /**
+     * @param $path
+     * @author stev leibelt <artodeto@bazzline.net>
+     * @since 2014-03-09
+     */
+    private function outputCurrentPathsProgress($path)
+    {
+        echo ($this->beVerbose) ? 'cd to path: ' . $path . PHP_EOL : '.';
     }
 
     /**

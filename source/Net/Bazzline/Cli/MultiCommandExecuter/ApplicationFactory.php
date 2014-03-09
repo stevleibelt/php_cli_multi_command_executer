@@ -31,7 +31,7 @@ class ApplicationFactory
                 'This script can run on command line only'
             );
         }
-        $options = getopt('c:d', array('config:', 'debug'));
+        $options = getopt('c:v', array('config:', 'verbose'));
 
         $configurationFilePath = (isset($options['c']))
             ? $options['c']
@@ -41,8 +41,8 @@ class ApplicationFactory
 
         if (is_null($configurationFilePath)) {
             throw new Exception(
-                'Usage: ' . $argv[0] . ' -c"path/to/configuration/file.json" [-d]' . PHP_EOL .
-                'Usage: ' . $argv[0] . ' --config "path/to/configuration/file.json" [--debug]' . PHP_EOL
+                'Usage: ' . $argv[0] . ' -c"path/to/configuration/file.json" [-v]' . PHP_EOL .
+                'Usage: ' . $argv[0] . ' --config "path/to/configuration/file.json" [--verbose]' . PHP_EOL
             );
         }
         if (!is_file($configurationFilePath)) {
