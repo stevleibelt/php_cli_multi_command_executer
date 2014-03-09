@@ -33,7 +33,25 @@ class ApplicationFactory
                 'This script can run on command line only'
             );
         }
-        $options = getopt('c:v', array('config:', 'verbose'));
+        $options = getopt('c:rsv', array('config:', "removeLock", "setShutdown", 'verbose'));
+
+        $processName = $argv[0];
+        $removeLock = (isset($options['l'])) ? true : (isset($options['removeLock']));
+        $setShutdown = (isset($options['s'])) ? true : (isset($options['setShutdown']));
+
+        $lock = new FileLock($processName);
+        $shutdown = new FileShutdown($processName);
+
+        if ($removeLock) {
+            $lock->release();
+
+            return null;
+        }
+        if ($setShutdown) {
+            $shutdown->request();
+
+            return null;
+        }
 
         $configurationFilePath = (isset($options['c']))
             ? $options['c']
@@ -43,8 +61,8 @@ class ApplicationFactory
 
         if (is_null($configurationFilePath)) {
             throw new Exception(
-                'Usage: ' . $argv[0] . ' -c"path/to/configuration/file.json" [-v]' . PHP_EOL .
-                'Usage: ' . $argv[0] . ' --config "path/to/configuration/file.json" [--verbose]' . PHP_EOL
+                'Usage: ' . $argv[0] . ' -c"path/to/configuration/file.json" [-r] [-s] [-v]' . PHP_EOL .
+                'Usage: ' . $argv[0] . ' --config "path/to/configuration/file.json" [--removeLock] [--setShutdown] [--verbose]' . PHP_EOL
             );
         }
         if (!is_file($configurationFilePath)) {
@@ -52,12 +70,9 @@ class ApplicationFactory
                 'Invalid configration file provided: "' . $configurationFilePath . '" does not exist'
             );
         }
-        $processName = $argv[0];
         cli_set_process_title('multi command executer - ' . $processName);
 
         $configuration = (array) json_decode(file_get_contents($configurationFilePath));
-        $lock = new FileLock($processName);
-        $shutdown = new FileShutdown($processName);
 
         $application = new Application();
 
