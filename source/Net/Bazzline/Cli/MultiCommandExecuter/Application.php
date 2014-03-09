@@ -42,7 +42,7 @@ class Application
         return $this;
     }
 
-    /**
+    /**file
      * @param array $configuration
      * @return $this
      * @throws Exception
