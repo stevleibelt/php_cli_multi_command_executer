@@ -36,11 +36,12 @@ class ApplicationFactory
         $options = getopt('c:rsv', array('config:', "removeLock", "setShutdown", 'verbose'));
 
         $processName = $argv[0];
+        $currentWorkingDirectory = getcwd();
         $removeLock = (isset($options['l'])) ? true : (isset($options['removeLock']));
         $setShutdown = (isset($options['s'])) ? true : (isset($options['setShutdown']));
 
-        $lock = new FileLock($processName);
-        $shutdown = new FileShutdown($processName);
+        $lock = new FileLock($currentWorkingDirectory . DIRECTORY_SEPARATOR . $processName);
+        $shutdown = new FileShutdown($currentWorkingDirectory . DIRECTORY_SEPARATOR . $processName);
 
         if ($removeLock) {
             $lock->release();
