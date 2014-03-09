@@ -127,20 +127,9 @@ class Application implements LockAwareInterface, ShutdownAwareInterface
      */
     public function andRun()
     {
-        try {
-            $this->acquireLock();
-        } catch (RuntimeException $exception) {
-            throw new Exception($exception->getMessage());
-        }
-
-        try {
-            $this->workOnPaths();
-            $this->releaseLock();
-        } catch (RuntimeException $exception) {
-            $this->releaseLock();
-
-            throw new Exception($exception->getMessage());
-        }
+        $this->acquireLock();
+        $this->workOnPaths();
+        $this->releaseLock();
     }
 
     /**

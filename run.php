@@ -5,13 +5,12 @@
  * @since 2014-03-06 
  */
 
+use Net\Bazzline\Cli\MultiCommandExecuter\ApplicationFactory;
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 try {
-    \Net\Bazzline\Cli\MultiCommandExecuter\ApplicationFactory::create()->andRun();
-    //application factory
-    //setup application
-    //execute
+    ApplicationFactory::create()->andRun();
 } catch (Exception $exception) {
     echo $exception->getMessage() . PHP_EOL;
 }
