@@ -7,6 +7,11 @@
 namespace Net\Bazzline\Cli\MultiCommandExecuter;
 
 use Exception;
+use Net\Bazzline\Component\Lock\LockAwareInterface;
+use Net\Bazzline\Component\Lock\LockInterface;
+use Net\Bazzline\Component\Shutdown\ShutdownAwareInterface;
+use Net\Bazzline\Component\Shutdown\ShutdownInterface;
+use RuntimeException;
 
 /**
  * Class Application
@@ -14,7 +19,7 @@ use Exception;
  * @author stev leibelt <artodeto@bazzline.net>
  * @since 2014-03-07
  */
-class Application
+class Application implements LockAwareInterface, ShutdownAwareInterface
 {
     /**
      * @var boolean
@@ -29,6 +34,20 @@ class Application
      * @since 2014-03-07
      */
     private $configuration;
+
+    /**
+     * @var LockInterface
+     * @author stev leibelt <artodeto@bazzline>
+     * @since 2014-03-07
+     */
+    private $lock;
+
+    /**
+     * @var ShutdownInterface
+     * @author stev leibelt <artodeto@bazzline>
+     * @since 2014-03-09
+     */
+    private $shutdown;
 
     /**
      * @return $this
@@ -58,31 +77,160 @@ class Application
     }
 
     /**
+     * Set Lock
+     *
+     * @param LockInterface $lock
+     * @author stev leibelt <artodeto@arcor.de>
+     * @since 2013-06-30
+     */
+    public function setLock(LockInterface $lock)
+    {
+        $this->lock = $lock;
+    }
+
+    /**
+     * Get Lock
+     *
+     * @return LockInterface
+     * @author stev leibelt <artodeto@arcor.de>
+     * @since 2013-06-30
+     */
+    public function getLock()
+    {
+        return $this->lock;
+    }
+
+    /**
+     * Set shutdown
+     *
+     * @param ShutdownInterface $shutdown
+     */
+    public function setShutdown(ShutdownInterface $shutdown)
+    {
+        $this->shutdown = $shutdown;
+    }
+
+    /**
+     * Get shutdown
+     *
+     * @return ShutdownInterface
+     */
+    public function getShutdown()
+    {
+        return $this->shutdown;
+    }
+
+    /**
      * @throws Exception
      * @author stev leibelt <artodeto@bazzline.net>
      * @since 2014-03-07
      */
     public function andRun()
     {
+        try {
+            $this->acquireLock();
+        } catch (RuntimeException $exception) {
+            throw new Exception($exception->getMessage());
+        }
+
+        try {
+            $this->workOnPaths();
+            $this->releaseLock();
+        } catch (RuntimeException $exception) {
+            $this->releaseLock();
+
+            throw new Exception($exception->getMessage());
+        }
+    }
+
+    /**
+     * @throws \RuntimeException
+     * @author stev leibelt <artodeto@bazzline.net>
+     * @since 2014-03-09
+     */
+    private function workOnPaths()
+    {
         $currentWorkingDirectory = getcwd();
 
         foreach ($this->configuration['paths'] as $path) {
+            if ($this->shutdownIsRequested()) {
+                $this->outputShutdown();
+                break;
+            }
             $this->outputCurrentPathsProgress($path);
             $currentDirectoryPath = $currentWorkingDirectory . DIRECTORY_SEPARATOR . $path;
 
             if (!is_dir($currentDirectoryPath)) {
-                throw new Exception(
+                throw new RuntimeException(
                     'Invalid path provided: "' . $currentDirectoryPath . '" does not exist'
                 );
             }
 
             chdir($currentDirectoryPath);
+            $this->workOnCommands();
+        }
+    }
 
-            foreach ($this->configuration['commands'] as $command) {
-                $escapedCommand = escapeshellcmd($command);
-                $this->outputCurrentCommandProgress($command);
-                system($escapedCommand);
+    /**
+     * @author stev leibelt <artodeto@bazzline.net>
+     * @since 2014-03-09
+     */
+    private function workOnCommands()
+    {
+        foreach ($this->configuration['commands'] as $command) {
+            if ($this->shutdownIsRequested()) {
+                $this->outputShutdown();
+                break;
             }
+            $escapedCommand = escapeshellcmd($command);
+            $this->outputCurrentCommandProgress($command);
+            system($escapedCommand);
+        }
+    }
+
+    /**
+     * @throws \RuntimeException
+     * @author stev leibelt <artodeto@bazzline.net>
+     * @since 2014-03-09
+     */
+    private function acquireLock()
+    {
+        if ($this->lock instanceof LockInterface) {
+            $this->lock->acquire();
+        }
+    }
+
+    /**
+     * @throws \RuntimeException
+     * @author stev leibelt <artodeto@bazzline.net>
+     * @since 2014-03-09
+     */
+    private function releaseLock()
+    {
+        if ($this->lock instanceof LockInterface) {
+            $this->lock->release();
+        }
+    }
+
+    /**
+     * @return bool
+     * @author stev leibelt <artodeto@bazzline.net>
+     * @since 2014-03-09
+     */
+    private function shutdownIsRequested()
+    {
+        return ($this->shutdown instanceof ShutdownInterface)
+            ? $this->shutdown->isRequested() : false;
+    }
+
+    /**
+     * @author stev leibelt <artodeto@bazzline.net>
+     * @since 2014-03-09
+     */
+    private function outputShutdown()
+    {
+        if ($this->beVerbose) {
+            echo 'shutdown requested' . PHP_EOL;
         }
     }
 
