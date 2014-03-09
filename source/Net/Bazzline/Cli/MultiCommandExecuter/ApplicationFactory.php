@@ -7,6 +7,8 @@
 namespace Net\Bazzline\Cli\MultiCommandExecuter;
 
 use Exception;
+use Net\Bazzline\Component\Lock\FileLock;
+use Net\Bazzline\Component\Shutdown\FileShutdown;
 
 /**
  * Class ApplicationFactory
@@ -50,12 +52,18 @@ class ApplicationFactory
                 'Invalid configration file provided: "' . $configurationFilePath . '" does not exist'
             );
         }
-        cli_set_process_title('multi command executer - ' . $argv[0]);
+        $processName = $argv[0];
+        cli_set_process_title('multi command executer - ' . $processName);
 
         $configuration = (array) json_decode(file_get_contents($configurationFilePath));
+        $lock = new FileLock($processName);
+        $shutdown = new FileShutdown($processName);
 
         $application = new Application();
+
         $application->setConfiguration($configuration);
+        $application->setLock($lock);
+        $application->setShutdown($shutdown);
 
         return $application;
     }
