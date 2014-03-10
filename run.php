@@ -5,10 +5,10 @@
  * @since 2014-03-06 
  */
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 use Net\Bazzline\Cli\MultiCommandExecuter\Application;
 use Net\Bazzline\Cli\MultiCommandExecuter\ApplicationFactory;
-
-require_once __DIR__ . '/vendor/autoload.php';
 
 try {
     $application = ApplicationFactory::create();
