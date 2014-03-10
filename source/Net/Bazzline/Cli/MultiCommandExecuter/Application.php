@@ -173,7 +173,8 @@ class Application implements LockAwareInterface, ShutdownAwareInterface
             }
             $escapedCommand = escapeshellcmd($command);
             $this->outputCurrentCommandProgress($command);
-            system($escapedCommand);
+            $lastLine = system($escapedCommand);
+            $this->outputStatusMessage($lastLine);
         }
     }
 
@@ -210,6 +211,17 @@ class Application implements LockAwareInterface, ShutdownAwareInterface
     {
         return ($this->shutdown instanceof ShutdownInterface)
             ? $this->shutdown->isRequested() : false;
+    }
+
+    /**
+     * @author stev leibelt <artodeto@bazzline.net>
+     * @since 2014-03-09
+     */
+    private function outputStatusMessage($message)
+    {
+        if ($this->beVerbose) {
+            echo $message . PHP_EOL;
+        }
     }
 
     /**
