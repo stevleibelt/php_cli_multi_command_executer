@@ -71,7 +71,9 @@ class ApplicationFactory
                 'Invalid configration file provided: "' . $configurationFilePath . '" does not exist'
             );
         }
-        cli_set_process_title('multi command executer - ' . $processName);
+        if ((version_compare(PHP_VERSION,'5.5.0') >= 0)) {
+            cli_set_process_title('multi command executer - ' . $processName);
+        }
 
         $configuration = (array) json_decode(file_get_contents($configurationFilePath));
 
